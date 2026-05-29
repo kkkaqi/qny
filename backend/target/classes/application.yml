@@ -1,0 +1,42 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: voice-calendar
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/voice_calendar?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 123456
+
+  jackson:
+    date-format: yyyy-MM-dd'T'HH:mm:ss
+    time-zone: Asia/Shanghai
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+    database-platform: org.hibernate.dialect.MySQLDialect
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# 语音识别服务配置
+voice:
+  asr:
+    # 可选: baidu / aliyun / mock (没有云ASR密钥时用mock，前端会用浏览器Web Speech API替代)
+    provider: mock
+  baidu:
+    app-id: your-baidu-app-id
+    api-key: your-baidu-api-key
+    secret-key: your-baidu-secret-key
+  aliyun:
+    access-key-id: your-aliyun-access-key-id
+    access-key-secret: your-aliyun-access-key-secret
+    app-key: your-aliyun-app-key
