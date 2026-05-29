@@ -27,10 +27,22 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
-# 语音识别服务配置
+  data:
+    redis:
+      host: 192.168.88.128
+      port: 6379
+      password: 123456
+      timeout: 3000ms
+
+  session:
+    store-type: redis
+    timeout: 7d
+    redis:
+      namespace: voice-calendar:session
+      flush-mode: on_save
+
 voice:
   asr:
-    # 可选: baidu / aliyun / mock (没有云ASR密钥时用mock，前端会用浏览器Web Speech API替代)
     provider: mock
   baidu:
     app-id: your-baidu-app-id
