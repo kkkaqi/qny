@@ -1,5 +1,6 @@
 package com.voicecalendar.controller;
 
+import com.voicecalendar.llm.LlmProvider;
 import com.voicecalendar.model.dto.VoiceCommandResult;
 import com.voicecalendar.service.VoiceService;
 import jakarta.servlet.http.HttpSession;
@@ -18,6 +19,7 @@ import java.util.Map;
 public class VoiceController {
 
     private final VoiceService voiceService;
+    private final LlmProvider llmProvider;
 
     private Long getUserId(HttpSession session) { return (Long) session.getAttribute("userId"); }
 
@@ -44,6 +46,11 @@ public class VoiceController {
 
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> getStatus() {
-        return ResponseEntity.ok(Map.of("available", true, "message", "语音服务正常"));
+        return ResponseEntity.ok(Map.of(
+                "available", true,
+                "message", "语音服务正常",
+                "llmProvider", llmProvider.getProviderName(),
+                "llmAvailable", llmProvider.isAvailable()
+        ));
     }
 }

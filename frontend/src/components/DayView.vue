@@ -14,12 +14,14 @@
       <div class="event-content">
         <div class="event-title-row">
           <span class="de-title">{{ event.title }}</span>
+          <span v-if="event.allDay" class="all-day-badge">全天</span>
           <span v-if="event.recurringRule" class="recur-icon" title="重复">🔄</span>
         </div>
         <div class="event-meta">
           <span>{{ formatTimeRange(event.startTime, event.endTime) }}</span>
           <span v-if="event.location">📍 {{ event.location }}</span>
         </div>
+        <div v-if="event.description" class="de-desc">{{ event.description }}</div>
       </div>
     </div>
   </div>
@@ -92,4 +94,6 @@ function eventColor(event) {
 .de-title { font-size: 14px; font-weight: 500; color: #333; }
 .recur-icon { font-size: 12px; }
 .event-meta { margin-top: 2px; font-size: 12px; color: #999; display: flex; gap: 12px; }
+.all-day-badge { font-size: 11px; background: #fef3c7; color: #92400e; padding: 1px 6px; border-radius: 3px; }
+.de-desc { margin-top: 4px; font-size: 12px; color: #999; line-height: 1.4; }
 </style>

@@ -21,7 +21,7 @@
         </div>
         <div class="day-events">
           <div
-            v-for="event in cell.events.slice(0, 3)"
+            v-for="event in cell.events.slice(0, 4)"
             :key="event.id"
             :class="['event-chip', event.category || 'other']"
             @click.stop="$emit('eventClick', event)"
@@ -29,8 +29,8 @@
           >
             {{ event.title }}
           </div>
-          <div v-if="cell.events.length > 3" class="more-events">
-            +{{ cell.events.length - 3 }}
+          <div v-if="cell.events.length > 4" class="more-events" @click.stop="$emit('goToDate', cell.date)">
+            +{{ cell.events.length - 4 }} 更多
           </div>
         </div>
       </div>

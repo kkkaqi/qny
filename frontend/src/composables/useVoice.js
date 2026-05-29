@@ -1,52 +1,45 @@
-import { ref, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { uploadAudio, sendTextCommand } from '../api'
 
-/**
- * 语音交互 Composable
- *
- * 双模式策略：
- * 1. Web Speech API（优先）：浏览器原生语音识别，免费且无需后端ASR密钥
- * 2. 音频上传（备用）：录制音频上传后端，通过云ASR服务识别
- */
 export function useVoice() {
   const isListening = ref(false)
   const isProcessing = ref(false)
-  const transcript = ref('')        // 当前识别的文字
-  const result = ref(null)          // 后端处理结果
+  const transcript = ref('')
+  const result = ref(null)
   const error = ref(null)
-  const mode = ref('webspeech')     // 'webspeech' | 'upload'
+  const mode = ref('webspeech')
 
-  // Web Speech API 支持检测
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
   let recognition = null
-
-  if (SpeechRecognition) {
-    recognition = new SpeechRecognition()
-    recognition.lang = 'zh-CN'
-    recognition.interimResults = false
-    recognition.continuous = false
-    recognition.maxAlternatives = 1
-  }
+  let mediaRecorder = null
 
   /** 开始语音监听 */
   function startListening() {
     error.value = null
     result.value = null
     transcript.value = ''
+    isListening.value = false
 
     if (SpeechRecognition) {
-      // 优先使用 Web Speech API
       startWebSpeech()
     } else {
-      // 降级使用录音上传
       startRecording()
     }
   }
 
   /** 浏览器原生语音识别 */
   function startWebSpeech() {
-    isListening.value = true
-    mode.value = 'webspeech'
+    // 每次新建实例，避免旧实例状态异常
+    if (recognition) {
+      try { recognition.abort() } catch (e) { /* ignore */ }
+      recognition = null
+    }
+
+    recognition = new SpeechRecognition()
+    recognition.lang = 'zh-CN'
+    recognition.interimResults = false
+    recognition.continuous = false
+    recognition.maxAlternatives = 1
 
     recognition.onresult = async (event) => {
       const text = event.results[0][0].transcript
@@ -70,6 +63,8 @@ export function useVoice() {
         error.value = '请允许麦克风权限后重试'
       } else if (event.error === 'no-speech') {
         error.value = '未检测到语音，请重试'
+      } else if (event.error === 'aborted') {
+        // 用户主动停止，不算错误
       } else {
         error.value = '语音识别出错: ' + event.error
       }
@@ -79,41 +74,44 @@ export function useVoice() {
       isListening.value = false
     }
 
-    recognition.start()
+    try {
+      recognition.start()
+      isListening.value = true
+      mode.value = 'webspeech'
+    } catch (e) {
+      error.value = '无法启动语音识别，请刷新页面重试'
+      isListening.value = false
+    }
   }
 
   /** 停止监听 */
   function stopListening() {
-    if (recognition && isListening.value) {
-      recognition.stop()
-      isListening.value = false
+    if (recognition) {
+      try { recognition.abort() } catch (e) { /* ignore */ }
     }
-    if (mediaRecorder && isListening.value) {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
       mediaRecorder.stop()
-      isListening.value = false
     }
+    isListening.value = false
   }
 
   // ---- 录音上传模式（备用） ----
-  let mediaRecorder = null
   let audioChunks = []
+  let streamRef = null
 
   async function startRecording() {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' })
+      streamRef = await navigator.mediaDevices.getUserMedia({ audio: true })
+      mediaRecorder = new MediaRecorder(streamRef, { mimeType: 'audio/webm' })
       audioChunks = []
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunks.push(event.data)
-        }
+        if (event.data.size > 0) audioChunks.push(event.data)
       }
 
       mediaRecorder.onstop = async () => {
         isListening.value = false
         isProcessing.value = true
-
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' })
         try {
           const file = new File([audioBlob], 'recording.webm', { type: 'audio/webm' })
@@ -123,8 +121,6 @@ export function useVoice() {
           error.value = '上传识别失败: ' + e.message
         } finally {
           isProcessing.value = false
-          // 释放麦克风
-          stream.getTracks().forEach(t => t.stop())
         }
       }
 
@@ -132,27 +128,23 @@ export function useVoice() {
       mode.value = 'upload'
       mediaRecorder.start()
 
-      // 最长录制 10 秒
       setTimeout(() => {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
           mediaRecorder.stop()
         }
       }, 10000)
-
     } catch (e) {
       isListening.value = false
       error.value = '无法访问麦克风: ' + e.message
     }
   }
 
-  /** 直接发送文字指令 */
   async function sendText(text) {
     if (!text.trim()) return
     isProcessing.value = true
     error.value = null
     result.value = null
     transcript.value = text
-
     try {
       const res = await sendTextCommand(text)
       result.value = res.data
@@ -163,7 +155,6 @@ export function useVoice() {
     }
   }
 
-  /** 重置状态 */
   function reset() {
     isListening.value = false
     isProcessing.value = false
@@ -171,10 +162,6 @@ export function useVoice() {
     result.value = null
     error.value = null
   }
-
-  onUnmounted(() => {
-    stopListening()
-  })
 
   return {
     isListening,

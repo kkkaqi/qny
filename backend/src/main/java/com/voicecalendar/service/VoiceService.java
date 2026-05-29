@@ -1,11 +1,13 @@
 package com.voicecalendar.service;
 
 import com.voicecalendar.asr.AsrProvider;
+import com.voicecalendar.llm.LLMService;
 import com.voicecalendar.model.dto.EventResponse;
 import com.voicecalendar.model.dto.VoiceCommandResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -15,24 +17,36 @@ public class VoiceService {
 
     private final AsrProvider asrProvider;
     private final NLPService nlpService;
+    private final LLMService llmService;
     private final EventService eventService;
 
     public VoiceCommandResult processAudio(Long userId, byte[] audioData, String format, int sampleRate) {
         try {
             String text = asrProvider.recognize(audioData, format, sampleRate);
             if (text == null || text.isBlank()) {
-                return VoiceCommandResult.builder().intent("UNKNOWN").success(false).errorMessage("语音识别未返回结果，请重试").build();
+                return VoiceCommandResult.builder().intent("UNKNOWN").success(false)
+                        .errorMessage("语音识别未返回结果，请重试").build();
             }
             return processText(userId, text);
         } catch (Exception e) {
             log.error("语音处理异常", e);
-            return VoiceCommandResult.builder().intent("UNKNOWN").success(false).errorMessage("语音处理出错: " + e.getMessage()).build();
+            return VoiceCommandResult.builder().intent("UNKNOWN").success(false)
+                    .errorMessage("语音处理出错: " + e.getMessage()).build();
         }
     }
 
     public VoiceCommandResult processText(Long userId, String text) {
-        VoiceCommandResult result = nlpService.parse(text);
-        if (!result.getSuccess() || "UNKNOWN".equals(result.getIntent())) return result;
+        // 优先用 LLM 解析，失败则回退到 NLP 规则
+        VoiceCommandResult result = llmService.parse(text);
+        if (!result.getSuccess() || "UNKNOWN".equals(result.getIntent())) {
+            log.info("LLM 未识别，回退到 NLP 规则解析: {}", text);
+            result = nlpService.parse(text);
+        }
+
+        if (!result.getSuccess() || "UNKNOWN".equals(result.getIntent())) {
+            return result;
+        }
+
         try {
             switch (result.getIntent()) {
                 case "ADD_EVENT" -> {
@@ -47,19 +61,27 @@ public class VoiceService {
                     } else if (result.getDeleteKeyword() != null) {
                         List<EventResponse> candidates = eventService.searchEvents(userId, result.getDeleteKeyword());
                         result.setEvents(candidates);
-                        if (candidates.isEmpty()) { result.setConfirmationMessage("未找到相关事件"); result.setNeedsConfirmation(false); }
-                        else { result.setConfirmationMessage("找到 " + candidates.size() + " 个相关事件，请选择"); }
+                        result.setConfirmationMessage(candidates.isEmpty()
+                                ? "未找到相关事件" : "找到 " + candidates.size() + " 个相关事件，请选择");
+                        result.setNeedsConfirmation(!candidates.isEmpty());
                     }
                 }
                 case "QUERY_EVENTS" -> {
                     List<EventResponse> events;
                     String qd = result.getQueryDate();
-                    events = (qd != null && !qd.isBlank()) ? eventService.getEventsByDate(userId, java.time.LocalDate.parse(qd)) : eventService.getAllEvents(userId);
+                    events = (qd != null && !qd.isBlank())
+                            ? eventService.getEventsByDate(userId, java.time.LocalDate.parse(qd))
+                            : eventService.getAllEvents(userId);
                     result.setEvents(events);
-                    result.setConfirmationMessage(result.getConfirmationMessage() + (events.isEmpty() ? " 暂无事件" : " 共" + events.size() + "个"));
+                    result.setConfirmationMessage(result.getConfirmationMessage()
+                            + (events.isEmpty() ? " 暂无事件" : " 共" + events.size() + "个"));
                 }
             }
-        } catch (Exception e) { log.error("执行语音指令失败", e); result.setSuccess(false); result.setErrorMessage("操作失败: " + e.getMessage()); }
+        } catch (Exception e) {
+            log.error("执行指令失败: {}", result.getIntent(), e);
+            result.setSuccess(false);
+            result.setErrorMessage("操作失败: " + e.getMessage());
+        }
         return result;
     }
 }

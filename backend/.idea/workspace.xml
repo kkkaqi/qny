@@ -5,18 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e65b71b6-9592-4ed1-b221-f83582584094" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/voicecalendar/config/WebConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/voicecalendar/config/WebConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/voicecalendar/controller/EventController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/voicecalendar/controller/EventController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/voicecalendar/controller/VoiceController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/voicecalendar/controller/VoiceController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/voicecalendar/model/CalendarEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/voicecalendar/model/CalendarEvent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/voicecalendar/repository/EventRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/voicecalendar/repository/EventRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/voicecalendar/service/EventService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/voicecalendar/service/EventService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/voicecalendar/service/VoiceService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/voicecalendar/service/VoiceService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/src/router/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/router/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/voicecalendar/controller/VoiceController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/voicecalendar/controller/VoiceController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/voicecalendar/service/VoiceService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/voicecalendar/service/VoiceService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/components/HomePage.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/components/HomePage.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,6 +21,10 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
+  <component name="KubernetesApiPersistence"><![CDATA[{}]]></component>
+  <component name="KubernetesApiProvider"><![CDATA[{
+  "isMigrated": true
+}]]></component>
   <component name="MavenImportPreferences">
     <option name="generalSettings">
       <MavenGeneralSettings>
@@ -93,7 +92,7 @@
       <updated>1754277452241</updated>
       <workItem from="1780021291364" duration="2193000" />
       <workItem from="1780051247982" duration="556000" />
-      <workItem from="1780051847201" duration="2047000" />
+      <workItem from="1780051847201" duration="5704000" />
     </task>
     <servers />
   </component>

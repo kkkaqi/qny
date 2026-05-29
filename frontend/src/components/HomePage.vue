@@ -33,7 +33,7 @@
     <RecordingOverlay :visible="pttVisible" :isRecording="pttRecording" :isProcessing="pttProcessing" :transcript="pttTranscript" :error="pttError" />
     <EventDetail v-if="selectedEvent" :event="selectedEvent" @close="selectedEvent = null" @edit="handleEdit" @delete="handleDelete" />
     <EventForm v-if="showForm" :editData="editData" @close="showForm = false; editData = null" @save="handleSave" />
-    <VoiceModal v-if="voiceResult" :result="voiceResult" @close="voiceResult = null" @confirm="handleVoiceConfirm" @refresh="loadEvents" />
+    <VoiceModal v-if="voiceResult" :result="voiceResult" @close="voiceResult = null; loadEvents()" @confirm="handleVoiceConfirm" />
   </div>
 </template>
 

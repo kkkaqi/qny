@@ -52,3 +52,8 @@ voice:
     access-key-id: your-aliyun-access-key-id
     access-key-secret: your-aliyun-access-key-secret
     app-key: your-aliyun-app-key
+  # LLM 大模型配置（用于语音指令理解）
+  llm:
+    qwen:
+      api-key: sk-e9555fcd58cc42568b82e5528fd2fa85    # 通义千问 API Key
+      model: qwen-plus              # qwen-plus / qwen-max / qwen-turbo
