@@ -12,6 +12,16 @@
       <span class="lunar-label">农历</span>
       <span class="lunar-text">{{ lunarText }}</span>
     </div>
+    <!-- AI 总结 -->
+    <div class="today-summary">
+      <div class="summary-buttons">
+        <button :class="['btn-summary', { active: loadingWeek }]" @click="loadSummary('week')">📊 本周</button>
+        <button :class="['btn-summary', { active: loadingMonth }]" @click="loadSummary('month')">本月</button>
+      </div>
+      <div v-if="summaryLoading" class="summary-text loading">AI 思考中...</div>
+      <div v-else-if="summaryText" class="summary-text">{{ summaryText }}</div>
+    </div>
+
     <div class="today-events">
       <div class="events-label">今日事件</div>
       <div v-if="todayEvents.length === 0" class="no-events">暂无安排</div>
@@ -31,9 +41,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import dayjs from 'dayjs'
 import solarLunar from 'solarlunar'
+import axios from 'axios'
 
 const props = defineProps({
   events: { type: Array, default: () => [] }
@@ -73,6 +84,28 @@ const todayEvents = computed(() => {
 
 function formatTime(timeStr) {
   return dayjs(timeStr).format('HH:mm')
+}
+
+// AI 总结
+const summaryText = ref('')
+const summaryLoading = ref(false)
+const loadingWeek = ref(false)
+const loadingMonth = ref(false)
+
+async function loadSummary(period) {
+  if (period === 'week') loadingWeek.value = true
+  else loadingMonth.value = true
+  summaryLoading.value = true
+  try {
+    const res = await axios.post('/api/chat/summary', { period, date: now.format('YYYY-MM-DD') })
+    summaryText.value = res.data.summary || '生成失败'
+  } catch (e) {
+    summaryText.value = '生成失败'
+  } finally {
+    summaryLoading.value = false
+    loadingWeek.value = false
+    loadingMonth.value = false
+  }
 }
 </script>
 
@@ -137,6 +170,25 @@ function formatTime(timeStr) {
   font-size: 13px;
   color: #c0392b;
 }
+
+.today-summary {
+  width: 100%;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 12px;
+}
+
+.summary-buttons { display: flex; gap: 6px; margin-bottom: 8px; }
+
+.btn-summary {
+  padding: 3px 10px; border: 1px solid #e0e0e0; background: #fff; border-radius: 4px;
+  cursor: pointer; font-size: 12px; color: #666;
+}
+.btn-summary.active { background: #c0392b; color: #fff; border-color: #c0392b; }
+.btn-summary:hover { border-color: #c0392b; }
+
+.summary-text { font-size: 12px; color: #666; line-height: 1.5; }
+.summary-text.loading { color: #ccc; }
 
 .today-events {
   width: 100%;

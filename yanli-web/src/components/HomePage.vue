@@ -18,6 +18,7 @@
           <div class="view-switcher">
             <button v-for="v in views" :key="v.key" :class="['btn-view', { active: viewMode === v.key }]" @click="doSwitchView(v.key)">{{ v.label }}</button>
           </div>
+          <button class="btn-theme" @click="toggleDark" :title="isDark ? '亮色模式' : '暗色模式'">{{ isDark ? '☀️' : '🌙' }}</button>
           <span class="user-info">{{ user.nickname || user.username }}</span>
           <button class="btn-logout" @click="handleLogout">退出</button>
         </div>
@@ -31,6 +32,7 @@
     </div>
     <VoiceButton @command-result="(r) => voiceResult = r" />
     <ChatPanel />
+    <QuickPanel @addToday="handleAddToday" @viewToday="handleViewToday" />
     <RecordingOverlay :visible="pttVisible" :isRecording="pttRecording" :isProcessing="pttProcessing" :transcript="pttTranscript" :error="pttError" />
     <EventDetail v-if="selectedEvent" :event="selectedEvent" @close="selectedEvent = null" @edit="handleEdit" @delete="handleDelete" />
     <EventForm v-if="showForm" :editData="editData" @close="showForm = false; editData = null" @save="handleSave" />
@@ -53,11 +55,17 @@ import EventDetail from './EventDetail.vue'
 import EventForm from './EventForm.vue'
 import RecordingOverlay from './RecordingOverlay.vue'
 import ChatPanel from './ChatPanel.vue'
+import QuickPanel from './QuickPanel.vue'
 import { usePushToTalk } from '../composables/usePushToTalk'
 
 const router = useRouter()
 const user = ref({ username: '', nickname: '' })
 fetchUser().then(u => user.value = u).catch(() => router.replace('/login'))
+
+// 暗色模式
+const isDark = ref(localStorage.getItem('dark') === '1')
+if (isDark.value) document.documentElement.classList.add('dark')
+function toggleDark() { isDark.value = !isDark.value; document.documentElement.classList.toggle('dark'); localStorage.setItem('dark', isDark.value ? '1' : '0') }
 
 const { currentDate, viewMode, events, loading, prev, next, goToday, switchView, goToDate, loadEvents } = useCalendar()
 
@@ -89,6 +97,9 @@ const dateTitle = computed(() => {
 const selectedEvent = ref(null), showForm = ref(false), editData = ref(null), voiceResult = ref(null), quickInput = ref('')
 
 async function sendQuickCommand() { const t = quickInput.value.trim(); if (!t) return; try { const r = await sendTextCommand(t, currentDate.value.format('YYYY-MM-DD')); quickInput.value = ''; voiceResult.value = r.data } catch { alert('处理失败') } }
+
+function handleAddToday() { goToday(); showForm.value = true }
+function handleViewToday() { goToday(); viewMode.value = 'day'; loadEvents() }
 function handleVoiceResult(r) { voiceResult.value = r }
 function handleEdit(e) { editData.value = e; showForm.value = true; selectedEvent.value = null }
 async function handleDelete(e) { if (!confirm('确定删除「' + e.title + '」？')) return; try { await deleteEvent(e.id); loadEvents() } catch { alert('删除失败') } selectedEvent.value = null }
@@ -120,6 +131,7 @@ async function handleLogout() { await axios.post('/api/auth/logout'); router.rep
 .btn-nav:hover { background: #f0f0f0; }
 .current-date { font-size: 16px; font-weight: 600; color: var(--text); }
 .user-info { font-size: 12px; color: #999; }
+.btn-theme { background: none; border: none; font-size: 16px; cursor: pointer; padding: 2px 6px; }
 .btn-logout { padding: 4px 10px; border: 1px solid var(--border); background: var(--surface); border-radius: 4px; cursor: pointer; font-size: 12px; color: #999; }
 .btn-logout:hover { color: #c0392b; border-color: #c0392b; }
 .app-main { display: flex; background: var(--surface); }

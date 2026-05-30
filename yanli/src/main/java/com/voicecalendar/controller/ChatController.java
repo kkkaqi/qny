@@ -48,4 +48,17 @@ public class ChatController {
         chatService.reset(getUserId(session), roleId);
         return ResponseEntity.ok(Map.of("message", "对话已清空"));
     }
+
+    /** AI 总结 */
+    @PostMapping("/summary")
+    public ResponseEntity<?> summary(@RequestBody Map<String, String> body, HttpSession session) {
+        String period = body.getOrDefault("period", "week");
+        String date = body.getOrDefault("date", java.time.LocalDate.now().toString());
+        try {
+            String summary = chatService.summarize(getUserId(session), period, date);
+            return ResponseEntity.ok(Map.of("summary", summary));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of("summary", "生成失败"));
+        }
+    }
 }

@@ -2,6 +2,8 @@ package com.voicecalendar.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.voicecalendar.model.dto.EventResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +31,7 @@ public class ChatService {
     private String model;
 
     private final OkHttpClient client = new OkHttpClient();
+    private final EventService eventService;
 
     private static final int MAX_TURNS = 20;
     private static final String PREFIX = "chat:history:";
@@ -93,6 +96,45 @@ public class ChatService {
         redis.opsForValue().set(key, mapper.writeValueAsString(history), 7, TimeUnit.DAYS);
 
         return reply;
+    }
+
+    /** AI 周/月总结 */
+    public String summarize(Long userId, String period, String date) throws Exception {
+        if (apiKey == null || apiKey.isBlank() || apiKey.startsWith("your-")) {
+            return "请先配置千问 API Key";
+        }
+
+        java.time.LocalDate end = java.time.LocalDate.parse(date.substring(0, 10));
+        java.time.LocalDate start = "week".equals(period) ? end.minusDays(7) : end.minusDays(30);
+        List<EventResponse> events = eventService.getEventsByRange(userId, start.atStartOfDay(), end.atTime(java.time.LocalTime.MAX));
+
+        if (events.isEmpty()) return "暂无事件";
+
+        StringBuilder eventList = new StringBuilder();
+        for (EventResponse e : events) {
+            eventList.append("- ").append(e.getStartTime().toLocalDate()).append(" ").append(e.getTitle()).append("\n");
+        }
+
+        String prompt = "根据以下" + ("week".equals(period) ? "一周" : "一个月") + "的事件列表，用一句话概括（20字以内，口语化）：\n" + eventList;
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("model", model);
+        body.put("messages", List.of(
+                Map.of("role", "user", "content", prompt)
+        ));
+        body.put("temperature", 0.7);
+        body.put("max_tokens", 100);
+
+        String reqJson = mapper.writeValueAsString(body);
+        Request request = new Request.Builder().url(API_URL)
+                .post(RequestBody.create(reqJson, JSON_MEDIA))
+                .addHeader("Authorization", "Bearer " + apiKey).build();
+
+        try (Response resp = client.newCall(request).execute()) {
+            if (!resp.isSuccessful()) return "生成失败";
+            String respBody = resp.body() != null ? resp.body().string() : "";
+            return mapper.readTree(respBody).get("choices").get(0).get("message").get("content").asText();
+        }
     }
 
     public void reset(Long userId, String roleId) {

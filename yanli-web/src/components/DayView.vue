@@ -18,7 +18,7 @@
           <span v-if="event.recurringRule" class="recur-icon" title="重复">🔄</span>
         </div>
         <div class="event-meta">
-          <span>{{ formatTimeRange(event.startTime, event.endTime) }}</span>
+          <span v-if="!event.allDay">{{ formatTimeRange(event.startTime, event.endTime) }}</span>
           <span v-if="event.location">📍 {{ event.location }}</span>
         </div>
         <div v-if="event.description" class="de-desc">{{ event.description }}</div>
