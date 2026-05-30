@@ -3,9 +3,9 @@
     <div class="app">
       <header class="app-header">
         <div class="header-left">
-          <button class="btn-nav" @click="prev">◀</button>
+          <button class="btn-nav" @click="doPrev">◀</button>
           <span class="current-date">{{ dateTitle }}</span>
-          <button class="btn-nav" @click="next">▶</button>
+          <button class="btn-nav" @click="doNext">▶</button>
           <button class="btn-today" @click="goToday">今天</button>
         </div>
         <div class="header-center">
@@ -16,7 +16,7 @@
         </div>
         <div class="header-right">
           <div class="view-switcher">
-            <button v-for="v in views" :key="v.key" :class="['btn-view', { active: viewMode === v.key }]" @click="switchView(v.key)">{{ v.label }}</button>
+            <button v-for="v in views" :key="v.key" :class="['btn-view', { active: viewMode === v.key }]" @click="doSwitchView(v.key)">{{ v.label }}</button>
           </div>
           <span class="user-info">{{ user.nickname || user.username }}</span>
           <button class="btn-logout" @click="handleLogout">退出</button>
@@ -25,11 +25,12 @@
       <main class="app-main">
         <TodayPanel :events="events" />
         <div class="calendar-area">
-          <CalendarView :events="events" :currentDate="currentDate" :viewMode="viewMode" :loading="loading" @goToDate="goToDate" @eventClick="(e) => selectedEvent = e" />
+          <CalendarView :events="events" :currentDate="currentDate" :viewMode="viewMode" :loading="loading" :holidays="hNames" :slogans="hSlogans" @goToDate="doGoToDate" @eventClick="(e) => selectedEvent = e" />
         </div>
       </main>
     </div>
     <VoiceButton @command-result="(r) => voiceResult = r" />
+    <ChatPanel />
     <RecordingOverlay :visible="pttVisible" :isRecording="pttRecording" :isProcessing="pttProcessing" :transcript="pttTranscript" :error="pttError" />
     <EventDetail v-if="selectedEvent" :event="selectedEvent" @close="selectedEvent = null" @edit="handleEdit" @delete="handleDelete" />
     <EventForm v-if="showForm" :editData="editData" @close="showForm = false; editData = null" @save="handleSave" />
@@ -42,7 +43,7 @@ import { ref, computed } from 'vue'
 import dayjs from 'dayjs'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { createEvent, updateEvent, deleteEvent, sendTextCommand, fetchUser } from '../api'
+import { createEvent, updateEvent, deleteEvent, sendTextCommand, fetchUser, getHolidays } from '../api'
 import { useCalendar } from '../composables/useCalendar'
 import CalendarView from './CalendarView.vue'
 import TodayPanel from './TodayPanel.vue'
@@ -51,6 +52,7 @@ import VoiceModal from './VoiceModal.vue'
 import EventDetail from './EventDetail.vue'
 import EventForm from './EventForm.vue'
 import RecordingOverlay from './RecordingOverlay.vue'
+import ChatPanel from './ChatPanel.vue'
 import { usePushToTalk } from '../composables/usePushToTalk'
 
 const router = useRouter()
@@ -58,7 +60,25 @@ const user = ref({ username: '', nickname: '' })
 fetchUser().then(u => user.value = u).catch(() => router.replace('/login'))
 
 const { currentDate, viewMode, events, loading, prev, next, goToday, switchView, goToDate, loadEvents } = useCalendar()
-const { isPressing: pttVisible, isRecording: pttRecording, isProcessing: pttProcessing, transcript: pttTranscript, error: pttError } = usePushToTalk(handleVoiceResult)
+
+const hNames = ref({})
+const hSlogans = ref({})
+async function loadHolidays() {
+  try {
+    const y = currentDate.value.year()
+    const m = currentDate.value.month() + 1
+    const r = await getHolidays(y, m)
+    hNames.value = r.data.holidays || {}
+    hSlogans.value = r.data.slogans || {}
+  } catch (e) { /* ignore */ }
+}
+const _prev = prev, _next = next, _goToDate = goToDate, _switchView = switchView
+const doPrev = () => { _prev(); loadHolidays() }
+const doNext = () => { _next(); loadHolidays() }
+const doGoToDate = (d) => { _goToDate(d); loadHolidays() }
+const doSwitchView = (m) => { _switchView(m); loadHolidays() }
+loadHolidays()
+const { isPressing: pttVisible, isRecording: pttRecording, isProcessing: pttProcessing, transcript: pttTranscript, error: pttError } = usePushToTalk(handleVoiceResult, () => currentDate.value.format('YYYY-MM-DD'))
 
 const views = [{ key: 'month', label: '月' }, { key: 'week', label: '周' }, { key: 'day', label: '日' }]
 const dateTitle = computed(() => {
@@ -68,7 +88,7 @@ const dateTitle = computed(() => {
 
 const selectedEvent = ref(null), showForm = ref(false), editData = ref(null), voiceResult = ref(null), quickInput = ref('')
 
-async function sendQuickCommand() { const t = quickInput.value.trim(); if (!t) return; try { const r = await sendTextCommand(t); quickInput.value = ''; voiceResult.value = r.data } catch { alert('处理失败') } }
+async function sendQuickCommand() { const t = quickInput.value.trim(); if (!t) return; try { const r = await sendTextCommand(t, currentDate.value.format('YYYY-MM-DD')); quickInput.value = ''; voiceResult.value = r.data } catch { alert('处理失败') } }
 function handleVoiceResult(r) { voiceResult.value = r }
 function handleEdit(e) { editData.value = e; showForm.value = true; selectedEvent.value = null }
 async function handleDelete(e) { if (!confirm('确定删除「' + e.title + '」？')) return; try { await deleteEvent(e.id); loadEvents() } catch { alert('删除失败') } selectedEvent.value = null }

@@ -59,13 +59,18 @@ public class LLMService {
         - 提到"每天"→recurring:"DAILY"，"每周"→"WEEKLY"，"每月"→"MONTHLY"，否则为null
         - 删除意图时，title填要删除的关键词
         - 查询意图时，startTime填查询日期（00:00:00）
-        - confirmation用自然语言回应用户，如"已添加明天下午2点的上课事件"或"明天暂无安排"
+        - confirmation不要写"时间待补充"之类的话。全天事件就说"已添加XX的全天事件"，有时段就说"已添加X月X日下午X点的XX"
         """;
 
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     @SuppressWarnings("unchecked")
     public VoiceCommandResult parse(String text) {
+        return parse(text, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public VoiceCommandResult parse(String text, String contextDate) {
         if (!llmProvider.isAvailable()) {
             return VoiceCommandResult.builder()
                     .originalText(text)
@@ -76,7 +81,9 @@ public class LLMService {
         }
 
         try {
-            LocalDate today = LocalDate.now();
+            LocalDate today = (contextDate != null && !contextDate.isBlank())
+                    ? LocalDate.parse(contextDate.substring(0, 10))
+                    : LocalDate.now();
             String dayOfWeek = today.getDayOfWeek().toString();
             // 翻译星期
             String[] cnWeeks = {"日", "一", "二", "三", "四", "五", "六"};
@@ -112,7 +119,7 @@ public class LLMService {
                     .build();
 
             if ("ADD_EVENT".equals(intent) || "UPDATE_EVENT".equals(intent)) {
-                EventRequest eventReq = buildEventRequest(map, title);
+                EventRequest eventReq = buildEventRequest(map, title, today);
                 result.setEventData(eventReq);
             } else if ("DELETE_EVENT".equals(intent)) {
                 result.setDeleteKeyword(title);
@@ -132,7 +139,7 @@ public class LLMService {
         }
     }
 
-    private EventRequest buildEventRequest(Map<String, Object> map, String title) {
+    private EventRequest buildEventRequest(Map<String, Object> map, String title, LocalDate today) {
         EventRequest req = new EventRequest();
         req.setTitle(title);
 
@@ -144,9 +151,9 @@ public class LLMService {
             req.setStartTime(startTime);
             req.setEndTime(endTime != null ? endTime : startTime.plusHours(1));
         } else {
-            // 没有具体时间 → 设为今天全天事件
-            req.setStartTime(LocalDate.now().atStartOfDay());
-            req.setEndTime(LocalDate.now().atTime(LocalTime.MAX));
+            // 没有具体时间 → 设为上下文日期全天事件
+            req.setStartTime(today.atStartOfDay());
+            req.setEndTime(today.atTime(LocalTime.MAX));
             req.setAllDay(true);
         }
 

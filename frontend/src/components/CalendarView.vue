@@ -8,6 +8,8 @@
       v-if="viewMode === 'month'"
       :events="events"
       :currentDate="currentDate"
+      :holidays="holidays"
+      :slogans="slogans"
       @goToDate="$emit('goToDate', $event)"
       @eventClick="$emit('eventClick', $event)"
     />
@@ -37,7 +39,9 @@ defineProps({
   events: Array,
   currentDate: Object,
   viewMode: String,
-  loading: Boolean
+  loading: Boolean,
+  holidays: Object,
+  slogans: Object
 })
 
 defineEmits(['goToDate', 'eventClick'])

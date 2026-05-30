@@ -19,6 +19,8 @@
         <div class="day-number">
           <span :class="{ 'today-badge': cell.isToday }">{{ cell.dayNum }}</span>
         </div>
+        <div v-if="holidays[cell.date]" class="day-holiday">{{ holidays[cell.date] }}</div>
+        <div v-if="slogans[cell.date]" class="day-slogan">{{ slogans[cell.date] }}</div>
         <div class="day-events">
           <div
             v-for="event in cell.events.slice(0, 4)"
@@ -44,7 +46,9 @@ import dayjs from 'dayjs'
 
 const props = defineProps({
   events: { type: Array, default: () => [] },
-  currentDate: { type: Object, required: true }
+  currentDate: { type: Object, required: true },
+  holidays: { type: Object, default: () => ({}) },
+  slogans: { type: Object, default: () => ({}) }
 })
 
 defineEmits(['goToDate', 'eventClick'])
@@ -153,6 +157,16 @@ const calendarCells = computed(() => {
   border-radius: 50%;
   text-align: center;
   font-size: 13px;
+}
+
+.day-holiday {
+  font-size: 10px; color: #e74c3c; text-align: center; line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.day-slogan {
+  font-size: 9px; color: #e8a09a; text-align: center; line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic;
 }
 
 .day-events {

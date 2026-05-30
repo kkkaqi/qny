@@ -36,8 +36,12 @@ public class VoiceService {
     }
 
     public VoiceCommandResult processText(Long userId, String text) {
+        return processText(userId, text, null);
+    }
+
+    public VoiceCommandResult processText(Long userId, String text, String contextDate) {
         // 优先用 LLM 解析，失败则回退到 NLP 规则
-        VoiceCommandResult result = llmService.parse(text);
+        VoiceCommandResult result = llmService.parse(text, contextDate);
         if (!result.getSuccess() || "UNKNOWN".equals(result.getIntent())) {
             log.info("LLM 未识别，回退到 NLP 规则解析: {}", text);
             result = nlpService.parse(text);

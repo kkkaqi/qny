@@ -7,7 +7,7 @@ import { sendTextCommand } from '../api'
  * 使用浏览器 Web Speech API，按住空格键开始录音，松开结束。
  * 当焦点在 input/textarea 时不触发。
  */
-export function usePushToTalk(onResult) {
+export function usePushToTalk(onResult, getContextDate) {
   const isPressing = ref(false)     // 正在按住空格
   const isRecording = ref(false)    // 实际录音中
   const isProcessing = ref(false)
@@ -134,7 +134,7 @@ export function usePushToTalk(onResult) {
 
     isProcessing.value = true
     try {
-      const res = await sendTextCommand(text)
+      const res = await sendTextCommand(text, getContextDate ? getContextDate() : null)
       if (onResult) onResult(res.data)
     } catch (e) {
       error.value = '处理失败: ' + (e.response?.data?.errorMessage || e.message)

@@ -38,10 +38,11 @@ public class VoiceController {
     @PostMapping("/text")
     public ResponseEntity<VoiceCommandResult> processText(@RequestBody Map<String, String> body, HttpSession session) {
         String text = body.get("text");
+        String contextDate = body.get("contextDate");  // 前端当前的日历日期
         if (text == null || text.isBlank()) {
             return ResponseEntity.ok(VoiceCommandResult.builder().intent("UNKNOWN").success(false).errorMessage("请输入内容").build());
         }
-        return ResponseEntity.ok(voiceService.processText(getUserId(session), text));
+        return ResponseEntity.ok(voiceService.processText(getUserId(session), text, contextDate));
     }
 
     @GetMapping("/status")
