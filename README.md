@@ -1,4 +1,4 @@
-# 语音日历 (Voice Calendar)
+# 言历 (YanLi)
 
 以语音交互为核心的日历管理工具，支持按住空格键说话、文本指令输入和界面操作。
 
@@ -42,7 +42,7 @@
 ### 2. 启动后端
 
 ```bash
-cd backend
+cd yanli
 mvn spring-boot:run
 ```
 
@@ -51,7 +51,7 @@ mvn spring-boot:run
 ### 3. 启动前端
 
 ```bash
-cd frontend
+cd yanli-web
 npm install
 npm run dev
 ```
@@ -83,8 +83,8 @@ Session + Cookie 登录，Redis 存储 session（7 天有效期）。
 ## 项目结构
 
 ```
-voice-calendar/
-├── backend/
+yanli/
+├── yanli/                               # Spring Boot 后端
 │   ├── src/main/java/com/voicecalendar/
 │   │   ├── VoiceCalendarApplication.java
 │   │   ├── config/
@@ -105,7 +105,7 @@ voice-calendar/
 │   └── src/main/resources/
 │       ├── application.yml
 │       └── schema.sql
-├── frontend/
+├── yanli-web/                           # Vue 3 前端
 │   ├── src/
 │   │   ├── App.vue                      # 路由容器
 │   │   ├── components/
