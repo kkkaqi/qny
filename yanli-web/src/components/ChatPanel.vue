@@ -1,13 +1,13 @@
 <template>
   <div class="chat-wrapper">
     <!-- FAB -->
-    <button v-if="!show" class="chat-fab" @click="openChat" title="AI闲聊">💬</button>
+    <button v-if="!show" class="chat-fab" @click="openChat" title="闲聊">✦</button>
 
     <!-- 聊天浮窗 -->
     <Transition name="slide">
       <div v-if="show" class="chat-window">
         <div class="chat-header">
-          <span>🤖 AI闲聊</span>
+          <span>◈ 闲聊</span>
           <div class="chat-header-actions">
             <select v-model="currentRole" class="role-select" @change="switchRole">
               <option v-for="r in roles" :key="r.id" :value="r.id">{{ r.name }}</option>
@@ -26,7 +26,7 @@
         <!-- 消息列表 -->
         <div class="chat-messages" ref="msgList">
           <div v-if="messages.length === 0" class="chat-empty">
-            <div class="empty-avatar">🤖</div>
+            <div class="empty-avatar">◈</div>
             <p>{{ currentRole === 'custom' ? '设定好角色后开始聊天吧' : '开始聊天吧！' }}</p>
           </div>
           <div
@@ -34,11 +34,11 @@
             :key="i"
             :class="['chat-msg', msg.role === 'user' ? 'msg-user' : 'msg-ai']"
           >
-            <div class="msg-avatar">{{ msg.role === 'user' ? '👤' : '🤖' }}</div>
+            <div class="msg-avatar">{{ msg.role === 'user' ? '●' : '◈' }}</div>
             <div class="msg-bubble">{{ msg.content }}</div>
           </div>
           <div v-if="loading" class="chat-msg msg-ai">
-            <div class="msg-avatar">🤖</div>
+            <div class="msg-avatar">◈</div>
             <div class="msg-bubble typing">...</div>
           </div>
         </div>

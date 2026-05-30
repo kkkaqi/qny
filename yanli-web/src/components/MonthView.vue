@@ -25,8 +25,8 @@
           <div
             v-for="event in cell.events.slice(0, 4)"
             :key="event.id"
-            :class="['event-chip', event.category || 'other']"
-            @click.stop="$emit('eventClick', event)"
+            :class="['event-chip', event.category || 'other', { selected: selectedIds.includes(event.id) }]"
+            @click.stop="selectMode ? $emit('toggleSelect', event.id) : $emit('eventClick', event)"
             :title="event.title"
           >
             {{ event.title }}
@@ -48,10 +48,12 @@ const props = defineProps({
   events: { type: Array, default: () => [] },
   currentDate: { type: Object, required: true },
   holidays: { type: Object, default: () => ({}) },
-  slogans: { type: Object, default: () => ({}) }
+  slogans: { type: Object, default: () => ({}) },
+  selectMode: Boolean,
+  selectedIds: { type: Array, default: () => [] }
 })
 
-defineEmits(['goToDate', 'eventClick'])
+defineEmits(['goToDate', 'eventClick', 'toggleSelect'])
 
 const weekDays = ['日', '一', '二', '三', '四', '五', '六']
 
@@ -193,6 +195,7 @@ const calendarCells = computed(() => {
 .event-chip.personal { background: #fce7f3; color: #be185d; }
 .event-chip.work { background: #d1fae5; color: #047857; }
 .event-chip.reminder { background: #fef3c7; color: #b45309; }
+.event-chip.selected { outline: 2px solid #c0392b; outline-offset: -1px; }
 .event-chip.other { background: #f0f0f0; color: #666; }
 
 .more-events {

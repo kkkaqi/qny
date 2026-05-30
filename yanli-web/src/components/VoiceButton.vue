@@ -3,7 +3,7 @@
     <!-- 语音指令输入面板 -->
     <div v-if="showPanel" class="voice-panel">
       <div class="panel-header">
-        <span>{{ hasWebSpeech ? '🎤 语音助手' : '💬 语音助手' }}</span>
+        <span>◉ 语音输入</span>
         <button class="close-btn" @click="closePanel">✕</button>
       </div>
 
@@ -40,7 +40,7 @@
         </div>
 
         <button class="btn-voice" @click="startListening" :disabled="isProcessing">
-          <span class="mic-icon">🎙️</span>
+          <span class="mic-icon">◉</span>
           <span>{{ hasWebSpeech ? '点击开始语音输入' : '点击开始录音上传' }}</span>
         </button>
 
@@ -60,7 +60,7 @@
       @click="togglePanel"
       title="语音助手"
     >
-      <span class="fab-icon">🎙️</span>
+      <span class="fab-icon">◉</span>
     </button>
   </div>
 </template>

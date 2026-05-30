@@ -8,8 +8,12 @@
       v-for="event in dayEvents"
       :key="event.id"
       :class="['day-event', event.category || 'other']"
-      @click="$emit('eventClick', event)"
+      @click="selectMode ? $emit('toggleSelect', event.id) : $emit('eventClick', event)"
     >
+      <div v-if="selectMode" class="select-check">
+        <span v-if="selectedIds.includes(event.id)">☑</span>
+        <span v-else>☐</span>
+      </div>
       <div class="event-bar" :style="{ background: eventColor(event) }"></div>
       <div class="event-content">
         <div class="event-title-row">
@@ -33,10 +37,12 @@ import dayjs from 'dayjs'
 
 const props = defineProps({
   events: { type: Array, default: () => [] },
-  currentDate: { type: Object, required: true }
+  currentDate: { type: Object, required: true },
+  selectMode: Boolean,
+  selectedIds: { type: Array, default: () => [] }
 })
 
-defineEmits(['eventClick'])
+defineEmits(['eventClick', 'toggleSelect'])
 
 const dayEvents = computed(() => {
   const dateStr = props.currentDate.format('YYYY-MM-DD')
@@ -88,6 +94,7 @@ function eventColor(event) {
 
 .day-event:hover { background: #f5f5f5; }
 
+.select-check { padding: 8px 4px 8px 12px; font-size: 18px; color: #c0392b; cursor: pointer; flex-shrink: 0; }
 .event-bar { width: 3px; flex-shrink: 0; }
 .event-content { flex: 1; padding: 8px 14px; }
 .event-title-row { display: flex; align-items: center; gap: 4px; }

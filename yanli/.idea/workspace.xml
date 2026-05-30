@@ -5,9 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e65b71b6-9592-4ed1-b221-f83582584094" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/../yanli-web/src/components/DayView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../yanli-web/src/components/DayView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../yanli-web/src/components/HomePage.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../yanli-web/src/components/HomePage.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../yanli-web/src/components/QuickPanel.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../yanli-web/src/components/QuickPanel.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/voicecalendar/controller/ChatController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/voicecalendar/controller/ChatController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/voicecalendar/service/ChatService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/voicecalendar/service/ChatService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/voicecalendar/controller/EventController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/voicecalendar/controller/EventController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/voicecalendar/controller/EventController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/voicecalendar/controller/EventController.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -94,7 +97,7 @@
       <workItem from="1780128833894" duration="860000" />
       <workItem from="1780130408345" duration="31000" />
       <workItem from="1780137700299" duration="308000" />
-      <workItem from="1780138282223" duration="976000" />
+      <workItem from="1780138282223" duration="4570000" />
     </task>
     <servers />
   </component>

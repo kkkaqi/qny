@@ -6,7 +6,7 @@
         <div class="recording-box">
           <!-- 按住说话的圆形动画 -->
           <div :class="['mic-circle', { active: isRecording }]">
-            <span class="mic-icon">🎙️</span>
+            <span class="mic-icon">◉</span>
           </div>
 
           <div v-if="isRecording" class="status">

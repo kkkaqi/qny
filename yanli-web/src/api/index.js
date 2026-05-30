@@ -26,6 +26,7 @@ export function getEvent(id) { return api.get('/events/' + id) }
 export function createEvent(data) { return api.post('/events', data) }
 export function updateEvent(id, data) { return api.put('/events/' + id, data) }
 export function deleteEvent(id) { return api.delete('/events/' + id) }
+export function batchDeleteEvents(ids) { return api.post('/events/batch-delete', { ids }) }
 export function uploadAudio(file) { const fd = new FormData(); fd.append('file', file); return api.post('/voice/audio', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000 }) }
 export function sendTextCommand(text, contextDate) {
   const body = { text }

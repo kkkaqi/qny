@@ -18,6 +18,7 @@
           <div class="view-switcher">
             <button v-for="v in views" :key="v.key" :class="['btn-view', { active: viewMode === v.key }]" @click="doSwitchView(v.key)">{{ v.label }}</button>
           </div>
+          <button :class="['btn-today', { active: selectMode }]" @click="toggleSelectMode">{{ selectMode ? '退出选择' : '批量' }}</button>
           <button class="btn-theme" @click="toggleDark" :title="isDark ? '亮色模式' : '暗色模式'">{{ isDark ? '☀️' : '🌙' }}</button>
           <span class="user-info">{{ user.nickname || user.username }}</span>
           <button class="btn-logout" @click="handleLogout">退出</button>
@@ -26,7 +27,7 @@
       <main class="app-main">
         <TodayPanel :events="events" />
         <div class="calendar-area">
-          <CalendarView :events="events" :currentDate="currentDate" :viewMode="viewMode" :loading="loading" :holidays="hNames" :slogans="hSlogans" @goToDate="doGoToDate" @eventClick="(e) => selectedEvent = e" />
+          <CalendarView :events="events" :currentDate="currentDate" :viewMode="viewMode" :loading="loading" :holidays="hNames" :slogans="hSlogans" :selectMode="selectMode" :selectedIds="selectedIds" @goToDate="doGoToDate" @eventClick="(e) => { if (selectMode) toggleSelect(e.id); else selectedEvent = e }" @toggleSelect="toggleSelect" />
         </div>
       </main>
     </div>
@@ -34,6 +35,15 @@
     <ChatPanel />
     <QuickPanel @addToday="handleAddToday" @viewToday="handleViewToday" />
     <RecordingOverlay :visible="pttVisible" :isRecording="pttRecording" :isProcessing="pttProcessing" :transcript="pttTranscript" :error="pttError" />
+
+    <!-- 批量操作栏 -->
+    <div v-if="selectMode" class="batch-bar">
+      <span>{{ selectedIds.length ? '已选 ' + selectedIds.length + ' 个' : '点击事件选择' }}</span>
+      <div class="batch-actions">
+        <button class="batch-btn" @click="handleBatchDelete" :disabled="!selectedIds.length">🗑️ 删除选中</button>
+        <button class="batch-btn cancel" @click="exitSelectMode">取消</button>
+      </div>
+    </div>
     <EventDetail v-if="selectedEvent" :event="selectedEvent" @close="selectedEvent = null" @edit="handleEdit" @delete="handleDelete" />
     <EventForm v-if="showForm" :editData="editData" @close="showForm = false; editData = null" @save="handleSave" />
     <VoiceModal v-if="voiceResult" :result="voiceResult" @close="voiceResult = null; loadEvents()" @confirm="handleVoiceConfirm" />
@@ -45,7 +55,7 @@ import { ref, computed } from 'vue'
 import dayjs from 'dayjs'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { createEvent, updateEvent, deleteEvent, sendTextCommand, fetchUser, getHolidays } from '../api'
+import { createEvent, updateEvent, deleteEvent, batchDeleteEvents, sendTextCommand, fetchUser, getHolidays } from '../api'
 import { useCalendar } from '../composables/useCalendar'
 import CalendarView from './CalendarView.vue'
 import TodayPanel from './TodayPanel.vue'
@@ -86,7 +96,7 @@ const doNext = () => { _next(); loadHolidays() }
 const doGoToDate = (d) => { _goToDate(d); loadHolidays() }
 const doSwitchView = (m) => { _switchView(m); loadHolidays() }
 loadHolidays()
-const { isPressing: pttVisible, isRecording: pttRecording, isProcessing: pttProcessing, transcript: pttTranscript, error: pttError } = usePushToTalk(handleVoiceResult, () => currentDate.value.format('YYYY-MM-DD'))
+const { isPressing: pttVisible, isRecording: pttRecording, isProcessing: pttProcessing, transcript: pttTranscript, error: pttError } = usePushToTalk(handleVoiceResult, () => viewMode.value === 'day' ? currentDate.value.format('YYYY-MM-DD') : null)
 
 const views = [{ key: 'month', label: '月' }, { key: 'week', label: '周' }, { key: 'day', label: '日' }]
 const dateTitle = computed(() => {
@@ -95,8 +105,27 @@ const dateTitle = computed(() => {
 })
 
 const selectedEvent = ref(null), showForm = ref(false), editData = ref(null), voiceResult = ref(null), quickInput = ref('')
+const selectMode = ref(false)
+const selectedIds = ref([])
 
-async function sendQuickCommand() { const t = quickInput.value.trim(); if (!t) return; try { const r = await sendTextCommand(t, currentDate.value.format('YYYY-MM-DD')); quickInput.value = ''; voiceResult.value = r.data } catch { alert('处理失败') } }
+function toggleSelectMode() { selectMode.value = !selectMode.value; selectedIds.value = [] }
+function exitSelectMode() { selectMode.value = false; selectedIds.value = [] }
+function toggleSelect(id) {
+  const idx = selectedIds.value.indexOf(id)
+  if (idx >= 0) selectedIds.value.splice(idx, 1)
+  else selectedIds.value.push(id)
+}
+async function handleBatchDelete() {
+  if (!selectedIds.value.length || !confirm('确定删除选中的 ' + selectedIds.value.length + ' 个事件？')) return
+  try {
+    await batchDeleteEvents(selectedIds.value)
+    selectedIds.value = []
+    selectMode.value = false
+    loadEvents()
+  } catch (e) { alert('删除失败') }
+}
+
+async function sendQuickCommand() { const t = quickInput.value.trim(); if (!t) return; try { const cd = viewMode.value === 'day' ? currentDate.value.format('YYYY-MM-DD') : null; const r = await sendTextCommand(t, cd); quickInput.value = ''; voiceResult.value = r.data } catch { alert('处理失败') } }
 
 function handleAddToday() { goToday(); showForm.value = true }
 function handleViewToday() { goToday(); viewMode.value = 'day'; loadEvents() }
@@ -134,6 +163,20 @@ async function handleLogout() { await axios.post('/api/auth/logout'); router.rep
 .btn-theme { background: none; border: none; font-size: 16px; cursor: pointer; padding: 2px 6px; }
 .btn-logout { padding: 4px 10px; border: 1px solid var(--border); background: var(--surface); border-radius: 4px; cursor: pointer; font-size: 12px; color: #999; }
 .btn-logout:hover { color: #c0392b; border-color: #c0392b; }
+.btn-today.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.batch-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
+  background: var(--surface); border-top: 2px solid var(--primary);
+  padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.1);
+}
+.batch-bar span { font-size: 14px; color: var(--text); }
+.batch-actions { display: flex; gap: 10px; }
+.batch-btn { padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; background: var(--primary); color: #fff; }
+.batch-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.batch-btn.cancel { background: #f0f0f0; color: #666; }
+
 .app-main { display: flex; background: var(--surface); }
 .calendar-area { flex: 1; min-width: 0; }
 </style>

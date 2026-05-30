@@ -10,22 +10,31 @@
       :currentDate="currentDate"
       :holidays="holidays"
       :slogans="slogans"
+      :selectMode="selectMode"
+      :selectedIds="selectedIds"
       @goToDate="$emit('goToDate', $event)"
       @eventClick="$emit('eventClick', $event)"
+      @toggleSelect="$emit('toggleSelect', $event)"
     />
 
     <WeekView
       v-else-if="viewMode === 'week'"
       :events="events"
       :currentDate="currentDate"
+      :selectMode="selectMode"
+      :selectedIds="selectedIds"
       @eventClick="$emit('eventClick', $event)"
+      @toggleSelect="$emit('toggleSelect', $event)"
     />
 
     <DayView
       v-else-if="viewMode === 'day'"
       :events="events"
       :currentDate="currentDate"
+      :selectMode="selectMode"
+      :selectedIds="selectedIds"
       @eventClick="$emit('eventClick', $event)"
+      @toggleSelect="$emit('toggleSelect', $event)"
     />
   </div>
 </template>
@@ -41,7 +50,9 @@ defineProps({
   viewMode: String,
   loading: Boolean,
   holidays: Object,
-  slogans: Object
+  slogans: Object,
+  selectMode: Boolean,
+  selectedIds: Array
 })
 
 defineEmits(['goToDate', 'eventClick'])

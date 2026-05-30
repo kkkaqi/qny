@@ -1,7 +1,7 @@
 <template>
   <div class="login-page">
     <div class="login-card">
-      <div class="login-header"><h1>🎙️ 语音日历</h1><p>{{ isRegister ? '注册新账号' : '登录你的账号' }}</p></div>
+      <div class="login-header"><h1>📅 言历</h1><p>{{ isRegister ? '注册新账号' : '登录你的账号' }}</p></div>
       <form @submit.prevent="handleSubmit" class="login-form">
         <div class="form-group"><label>用户名</label><input v-model="username" class="form-input" placeholder="请输入用户名" required /></div>
         <div class="form-group"><label>密码</label><input v-model="password" type="password" class="form-input" placeholder="请输入密码" required /></div>

@@ -63,7 +63,7 @@ export function useCalendar() {
 
   /** 跳转到指定日期 */
   function goToDate(date) {
-    currentDate.value = dayjs(date)
+    currentDate.value = dayjs(date, 'YYYY-MM-DD')
     if (viewMode.value === 'month') {
       viewMode.value = 'day'
     }
